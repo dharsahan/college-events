@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Event Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <!-- Profile Icon (shown when logged in) -->
+                <div class="profile-icon-container" id="profileIconContainer" style="display: none;">
+                    <button class="profile-icon-btn" id="profileIconBtn">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <!-- Profile Dropdown -->
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="profile-info">
+                                <div class="profile-name" id="profileName">User Name</div>
+                                <div class="profile-email" id="profileEmail">user@example.com</div>
+                            </div>
+                        </div>
+                        <div class="profile-details">
+                            <div class="profile-detail-item">
+                                <i class="fas fa-id-card"></i>
+                                <span id="profileId">ID: N/A</span>
+                            </div>
+                            <div class="profile-detail-item">
+                                <i class="fas fa-building"></i>
+                                <span id="profileDepartment">Department: N/A</span>
+                            </div>
+                            <div class="profile-detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span id="profileYear">Year: N/A</span>
+                            </div>
+                            <div class="profile-detail-item">
+                                <i class="fas fa-users"></i>
+                                <span id="profileSection">Section: N/A</span>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="profile-action-btn" id="editProfileBtn">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            <button class="profile-action-btn profile-action-btn--logout" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <i class="fas fa-graduation-cap"></i>
+                <span>Muthayammal Campus Events</span>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="#" class="nav-link active" data-page="home">Home</a>
+                <a href="#" class="nav-link" data-page="events">Events</a>
+                <a href="#" class="nav-link" data-page="schedule">Schedule</a>
+                <a href="#" class="nav-link" data-page="results">Results</a>
+                <button class="btn btn--primary btn--sm" id="loginBtn">Login</button>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="btn btn--secondary btn--sm" id="dashboardBtn">Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="mainContent">
+        <!-- Home Page -->
+        <div class="page active" id="homePage">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Welcome to Campus Events</h1>
+                    <p class="hero-subtitle">Your one-stop platform for college event registration, scheduling, and results</p>
+                </div>
+            </section>
+
+            <!-- Statistics -->
+            <section class="stats-section">
+                <div class="container">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-calendar-alt stat-icon"></i>
+                            <h3 class="stat-number" id="totalEvents">0</h3>
+                            <p class="stat-label">Total Events</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-fire stat-icon"></i>
+                            <h3 class="stat-number" id="activeEvents">0</h3>
+                            <p class="stat-label">Active Events</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-trophy stat-icon"></i>
+                            <h3 class="stat-number" id="completedEvents">0</h3>
+                            <p class="stat-label">Completed Events</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Available Events Preview -->
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">Available Events</h2>
+                    <div class="events-grid" id="upcomingEventsPreview"></div>
+                    <div class="text-center" style="margin-top: 2rem;">
+                        <button class="btn btn--primary" data-page="events">View All Events</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Events Listing Page -->
+        <div class="page" id="eventsPage">
+            <section class="section">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h1 class="page-title" style="margin: 0;">All Events</h1>
+                        <button class="btn btn--secondary btn--sm" onclick="refreshCurrentPage()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="filters-bar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Search events..." class="search-input">
+                        </div>
+                        <select id="categoryFilter" class="filter-select">
+                            <option value="">All Categories</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Academic">Academic</option>
+                        </select>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="">All Events</option>
+                            <option value="Live">Live</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+
+                    <!-- Events Grid -->
+                    <div class="events-grid" id="eventsGrid"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Event Details Page -->
+        <div class="page" id="eventDetailsPage">
+            <section class="section">
+                <div class="container">
+                    <button class="btn btn--secondary" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <div id="eventDetailsContent"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Schedule/Calendar Page -->
+        <div class="page" id="schedulePage">
+            <section class="section">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h1 class="page-title" style="margin: 0;">Event Schedule</h1>
+                        <button class="btn btn--secondary btn--sm" onclick="refreshCurrentPage()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Calendar View -->
+                    <div class="calendar-view" id="calendarView">
+                        <div class="calendar-header">
+                            <button class="btn btn--secondary btn--sm" id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                            <h2 id="currentMonth"></h2>
+                            <button class="btn btn--secondary btn--sm" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar" id="calendar"></div>
+                        <div class="calendar-legend">
+                            <div class="legend-item"><span class="legend-color" style="background: #3B82F6;"></span> Technical</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #14B8A6;"></span> Cultural</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #F97316;"></span> Sports</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #10B981;"></span> Academic</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Events for Selected Date -->
+                    <div id="dateEventsContainer" style="display: none; margin-top: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 id="selectedDateTitle" style="margin: 0;"></h3>
+                            <button class="btn btn--secondary btn--sm" onclick="closeDateEvents()">
+                                <i class="fas fa-times"></i> Close
+                            </button>
+                        </div>
+                        <div id="dateEventsList" class="events-grid"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Results Page -->
+        <div class="page" id="resultsPage">
+            <section class="section">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h1 class="page-title" style="margin: 0;">Event Results</h1>
+                        <button class="btn btn--secondary btn--sm" onclick="refreshCurrentPage()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="results-grid" id="resultsGrid"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Result Details Page -->
+        <div class="page" id="resultDetailsPage">
+            <section class="section">
+                <div class="container">
+                    <button class="btn btn--secondary" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <div id="resultDetailsContent"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Student Dashboard -->
+        <div class="page" id="studentDashboard">
+            <section class="section">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h1 class="page-title" style="margin: 0;">My Dashboard</h1>
+                        <button class="btn btn--secondary btn--sm" onclick="refreshCurrentPage()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <h3>My Registered Events</h3>
+                            <div id="myRegisteredEvents"></div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <h3>My Results & Certificates</h3>
+                            <div id="myResultsCertificates"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card" style="margin-top: 1.5rem;">
+                        <h3>Registration History</h3>
+                        <div id="registrationHistory"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div class="page" id="adminDashboard">
+            <section class="section">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h1 class="page-title" style="margin: 0;">Admin Dashboard</h1>
+                        <button class="btn btn--secondary btn--sm" onclick="refreshCurrentPage()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Admin Stats -->
+                    <div class="stats-grid" style="margin-bottom: 2rem;">
+                        <div class="stat-card">
+                            <i class="fas fa-calendar stat-icon"></i>
+                            <h3 class="stat-number" id="adminTotalEvents">0</h3>
+                            <p class="stat-label">Total Events</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users stat-icon"></i>
+                            <h3 class="stat-number" id="adminTotalRegistrations">0</h3>
+                            <p class="stat-label">Total Registrations</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-broadcast-tower stat-icon"></i>
+                            <h3 class="stat-number" id="adminUpcomingEvents">0</h3>
+                            <p class="stat-label">Live Now</p>
+                        </div>
+                    </div>
+
+                    <!-- Admin Tabs -->
+                    <div class="admin-tabs">
+                        <button class="admin-tab active" data-tab="events">Event Management</button>
+                        <button class="admin-tab" data-tab="results">Results Management</button>
+                        <button class="admin-tab" data-tab="registrations">Registration History</button>
+                    </div>
+
+                    <!-- Events Management Tab -->
+                    <div class="admin-content active" id="adminEventsTab">
+                        <button class="btn btn--primary" id="createEventBtn"><i class="fas fa-plus"></i> Create New Event</button>
+                        <div id="adminEventsList" class="admin-events-list"></div>
+                    </div>
+
+                    <!-- Results Management Tab -->
+                    <div class="admin-content" id="adminResultsTab">
+                        <h3>Post Results for Completed Events</h3>
+                        <div id="adminCompletedEvents"></div>
+                    </div>
+
+                    <!-- Registrations Tab -->
+                    <div class="admin-content" id="adminRegistrationsTab">
+                        <h3>Registration History</h3>
+                        <div id="adminRegistrationsList"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Login/Signup Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="authModalTitle">Login</h2>
+                <button class="modal-close" id="closeLoginModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Auth Tabs -->
+                <div class="auth-tabs" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--color-card-border);">
+                    <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')" style="flex: 1; padding: 0.75rem; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 500; color: var(--color-text-secondary); transition: all 0.3s;">
+                        Login
+                    </button>
+                    <button class="auth-tab" id="signupTab" onclick="switchAuthTab('signup')" style="flex: 1; padding: 0.75rem; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 500; color: var(--color-text-secondary); transition: all 0.3s;">
+                        Sign Up
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" style="display: block;">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="your.email@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <p style="text-align: center; margin-top: 1rem; color: var(--color-text-secondary); font-size: 0.875rem;">
+                        Don't have an account? <a href="#" onclick="switchAuthTab('signup'); return false;" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Sign up</a>
+                    </p>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signupForm" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="signupName" class="form-control" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="signupEmail" class="form-control" placeholder="your.email@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="signupPassword" class="form-control" placeholder="Minimum 6 characters" required minlength="6">
+                        <small style="color: var(--color-text-secondary); display: block; margin-top: 0.25rem;">
+                            At least 6 characters
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">User Type</label>
+                        <select id="signupUserType" class="form-control" required>
+                            <option value="student">Student</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="signupStudentFields" style="display: none;">
+                        <label class="form-label">Department</label>
+                        <select id="signupDepartment" class="form-control">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                            <option value="Computer Science and Engineering (Artificial Intelligence and Machine Learning)">Computer Science and Engineering (Artificial Intelligence and Machine Learning)</option>
+                            <option value="Computer Science and Engineering (Cyber Security)">Computer Science and Engineering (Cyber Security)</option>
+                            <option value="Computer Science and Business Systems">Computer Science and Business Systems</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+                            <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+                            <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
+                            <option value="Electronics Engineering (VLSI Design and Technology)">Electronics Engineering (VLSI Design and Technology)</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Mechatronics Engineering">Mechatronics Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Bio Medical Engineering">Bio Medical Engineering</option>
+                            <option value="Bio Technology">Bio Technology</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="signupYearField" style="display: none;">
+                        <label class="form-label">Year of Study</label>
+                        <select id="signupYear" class="form-control">
+                            <option value="">Select Year</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="signupSectionField" style="display: none;">
+                        <label class="form-label">Section</label>
+                        <input type="text" id="signupSection" class="form-control" placeholder="e.g., A, B, C" maxlength="2">
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                    <p style="text-align: center; margin-top: 1rem; color: var(--color-text-secondary); font-size: 0.875rem;">
+                        Already have an account? <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Login</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="modal-close" id="closeEditProfileModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="editProfileName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="editProfileEmail" class="form-control" disabled>
+                        <small style="color: var(--color-text-secondary); display: block; margin-top: 0.25rem;">
+                            Email cannot be changed
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select id="editProfileDepartment" class="form-control">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                            <option value="Computer Science and Engineering (Artificial Intelligence and Machine Learning)">Computer Science and Engineering (Artificial Intelligence and Machine Learning)</option>
+                            <option value="Computer Science and Engineering (Cyber Security)">Computer Science and Engineering (Cyber Security)</option>
+                            <option value="Computer Science and Business Systems">Computer Science and Business Systems</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+                            <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+                            <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
+                            <option value="Electronics Engineering (VLSI Design and Technology)">Electronics Engineering (VLSI Design and Technology)</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Mechatronics Engineering">Mechatronics Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Bio Medical Engineering">Bio Medical Engineering</option>
+                            <option value="Bio Technology">Bio Technology</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year of Study</label>
+                        <select id="editProfileYear" class="form-control">
+                            <option value="">Select Year</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Section</label>
+                        <input type="text" id="editProfileSection" class="form-control" placeholder="e.g., A, B, C" maxlength="2">
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal" id="registrationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Event Registration</h2>
+                <button class="modal-close" id="closeRegistrationModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="eventRegistrationForm">
+                    <input type="hidden" id="regEventId">
+                    <div class="form-group">
+                        <label class="form-label">Student Name *</label>
+                        <input type="text" id="regName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" id="regEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" id="regPhone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Roll Number *</label>
+                        <input type="text" id="regRoll" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Department *</label>
+                        <select id="regDepartment" class="form-control" required>
+                            <option value="">Select Department</option>
+                            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                            <option value="Computer Science and Engineering (Artificial Intelligence and Machine Learning)">Computer Science and Engineering (Artificial Intelligence and Machine Learning)</option>
+                            <option value="Computer Science and Engineering (Cyber Security)">Computer Science and Engineering (Cyber Security)</option>
+                            <option value="Computer Science and Business Systems">Computer Science and Business Systems</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+                            <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+                            <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
+                            <option value="Electronics Engineering (VLSI Design and Technology)">Electronics Engineering (VLSI Design and Technology)</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Mechatronics Engineering">Mechatronics Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Bio Medical Engineering">Bio Medical Engineering</option>
+                            <option value="Bio Technology">Bio Technology</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="regSectionField" style="display: none;">
+                        <label class="form-label">Section *</label>
+                        <input type="text" id="regSection" class="form-control" placeholder="e.g., A, B, C" maxlength="2">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year *</label>
+                        <select id="regYear" class="form-control" required>
+                            <option value="">Select Year</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                        </select>
+                    </div>
+                    
+                    <!-- QR Code Payment Section -->
+                    <div id="qrCodeSection" style="margin: 1.5rem 0; padding: 1.5rem; background: var(--color-surface); border: 1px solid var(--color-card-border); border-radius: var(--radius-base); text-align: center;">
+                        <h4 style="margin-bottom: 1rem; color: var(--color-primary);"><i class="fas fa-qrcode"></i> Payment QR Code</h4>
+                        <div id="qrCodeContent" style="display: none;">
+                            <img id="registrationQRCode" style="max-width: 250px; width: 100%; border: 2px solid var(--color-card-border); border-radius: var(--radius-base); margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;">
+                            <button type="button" class="btn btn--secondary" onclick="downloadQRCode()">
+                                <i class="fas fa-download"></i> Download QR Code
+                            </button>
+                            <p style="margin-top: 1rem; color: var(--color-text-secondary); font-size: var(--font-size-sm);">Scan this QR code to complete payment</p>
+                        </div>
+                        <div id="noQRMessage" style="color: var(--color-text-secondary); padding: 1rem;">
+                            <i class="fas fa-info-circle"></i> No payment required for this event
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction ID Field (only visible when QR code exists) -->
+                    <div id="transactionIdField" class="form-group" style="display: none;">
+                        <label class="form-label"><i class="fas fa-receipt"></i> Transaction ID / Reference Number *</label>
+                        <input type="text" id="regTransactionId" class="form-control" placeholder="Enter transaction ID after payment">
+                        <small style="color: var(--color-text-secondary); display: block; margin-top: 0.5rem;">
+                            <i class="fas fa-exclamation-circle"></i> Please enter the transaction ID from your payment confirmation
+                        </small>
+                    </div>
+                    
+                    <!-- Custom Registration Fields -->
+                    <div id="customFieldsRegistration"></div>
+                    
+                    <button type="submit" class="btn btn--primary btn--full-width">Submit Registration</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div class="modal" id="createEventModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Create New Event</h2>
+                <button class="modal-close" id="closeCreateEventModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createEventForm">
+                    <div class="form-group">
+                        <label class="form-label">Event Name *</label>
+                        <input type="text" id="eventName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category *</label>
+                        <select id="eventCategory" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Academic">Academic</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" id="eventDate" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time *</label>
+                            <input type="time" id="eventTime" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Venue *</label>
+                        <input type="text" id="eventVenue" class="form-control" placeholder="Enter venue location" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description *</label>
+                        <textarea id="eventDescription" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Organizer *</label>
+                        <input type="text" id="eventOrganizer" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Registration Deadline *</label>
+                        <input type="date" id="eventDeadline" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Requirements/Eligibility</label>
+                        <textarea id="eventRequirements" class="form-control" rows="2"></textarea>
+                    </div>
+                    
+                    <!-- Section Field Toggle -->
+                    <div class="form-group" style="border: 1px solid var(--color-card-border); padding: 1rem; border-radius: var(--radius-base); background: var(--color-surface);">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin: 0;">
+                            <input type="checkbox" id="eventRequireSection" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span style="font-weight: var(--font-weight-medium); color: var(--color-text);">
+                                <i class="fas fa-users"></i> Require Section Field in Registration
+                            </span>
+                        </label>
+                        <small style="color: var(--color-text-secondary); display: block; margin-top: 0.5rem; margin-left: 2rem;">
+                            Enable this to ask students for their section during registration. The field will be auto-filled if they have saved it in their profile.
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Payment QR Code (Optional)</label>
+                        <input type="file" id="eventQRCode" class="form-control" accept="image/*">
+                        <small style="color: var(--color-text-secondary); display: block; margin-top: 0.5rem;">Upload QR code for payment (if registration fee required)</small>
+                        <div id="qrPreview" style="margin-top: 1rem; display: none; position: relative;">
+                            <img id="qrPreviewImage" style="max-width: 200px; border: 1px solid var(--color-card-border); border-radius: var(--radius-base);">
+                            <button type="button" class="btn btn--secondary btn--sm" onclick="removeQRImage()" style="position: absolute; top: 5px; right: 5px; padding: 0.25rem 0.5rem; background: var(--color-red-500); color: white; border-radius: 50%;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Custom Registration Fields (Optional)</label>
+                        <div id="customFieldsContainer"></div>
+                        <button type="button" class="btn btn--secondary" onclick="addCustomField()">
+                            <i class="fas fa-plus"></i> Add Custom Field
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">Create Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Results Modal -->
+    <div class="modal" id="postResultsModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Post Event Results</h2>
+                <button class="modal-close" id="closePostResultsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="postResultsForm">
+                    <input type="hidden" id="resultEventId">
+                    
+                    <!-- Winners Section -->
+                    <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+                        <i class="fas fa-trophy"></i> Winners
+                    </h3>
+                    
+                    <!-- 1st Place (Default) -->
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-medal" style="color: #FFD700;"></i> 1st Place Winner *</label>
+                        <div style="position: relative;">
+                            <input type="text" id="firstPlaceSearch" placeholder="Search by name or email..." 
+                                   class="form-control" required
+                                   oninput="showWinnerSuggestions('firstPlaceSearch', 'firstPlaceSuggestions')"
+                                   onfocus="showWinnerSuggestions('firstPlaceSearch', 'firstPlaceSuggestions')"
+                                   autocomplete="off">
+                            <i class="fas fa-search" style="position: absolute; right: 12px; top: 12px; color: var(--color-text-secondary); pointer-events: none;"></i>
+                            <input type="hidden" id="firstPlaceEmail" required>
+                            <div id="firstPlaceSuggestions" class="autocomplete-suggestions"></div>
+                        </div>
+                        <input type="file" id="firstPlaceCert" class="form-control" accept="image/*,application/pdf" style="margin-top: 0.5rem;">
+                        <small style="color: var(--color-text-secondary); display: block; margin-top: 0.25rem;">
+                            Upload certificate (high quality image or PDF)
+                        </small>
+                    </div>
+                    
+                    <!-- Custom Placements Container -->
+                    <div id="customPlacementsContainer"></div>
+                    <button type="button" class="btn btn--secondary" onclick="addCustomPlacement()" style="margin-bottom: 1.5rem;">
+                        <i class="fas fa-plus"></i> Add More Placements
+                    </button>
+                    
+                    <!-- Participation Certificate -->
+                    <div style="border-top: 2px solid var(--color-card-border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+                            <i class="fas fa-certificate"></i> Participation Certificate
+                        </h3>
+                        <div class="form-group">
+                            <label class="form-label">Upload Participation Certificate (Optional)</label>
+                            <input type="file" id="participationCert" class="form-control" accept="image/*,application/pdf">
+                            <small style="color: var(--color-text-secondary); display: block; margin-top: 0.25rem;">
+                                This certificate will be available for all registered participants to download
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Details -->
+                    <div style="border-top: 2px solid var(--color-card-border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+                            <i class="fas fa-info-circle"></i> Event Details
+                        </h3>
+                        <div class="form-group">
+                            <label class="form-label">Number of Participants *</label>
+                            <input type="number" id="participantCount" class="form-control" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Event Summary *</label>
+                            <textarea id="eventSummary" class="form-control" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn--primary btn--full-width">
+                        <i class="fas fa-check-circle"></i> Publish Results
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Floating Social Media Bar -->
+    <div class="floating-social-bar">
+        <a href="https://facebook.com/MuthayammalEngineeringCollege" target="_blank" title="Facebook" class="floating-social-link">
+            <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://www.instagram.com/mec.edu.in/" target="_blank" title="Instagram" class="floating-social-link">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://twitter.com/MuthayammalEngg" target="_blank" title="Twitter" class="floating-social-link">
+            <i class="fab fa-twitter"></i>
+        </a>
+        <a href="https://www.linkedin.com/school/muthayammal-engineering-college" target="_blank" title="LinkedIn" class="floating-social-link">
+            <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="https://www.youtube.com/MuthayammalEngineeringCollege" target="_blank" title="YouTube" class="floating-social-link">
+            <i class="fab fa-youtube"></i>
+        </a>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

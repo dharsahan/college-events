@@ -1,0 +1,70 @@
+{
+  "events": [],
+  "pastEvents": [
+    {
+      "id": 101,
+      "name": "TechFest 2025",
+      "category": "Technical",
+      "date": "2025-10-15",
+      "winners": {
+        "first": "Team Alpha - Smart City IoT Project",
+        "second": "Team Beta - Healthcare AI Solution",
+        "third": "Team Gamma - EduTech Platform"
+      },
+      "participants": 45,
+      "summary": "Amazing showcase of innovative projects with 15 teams competing"
+    },
+    {
+      "id": 102,
+      "name": "Annual Sports Day",
+      "category": "Sports",
+      "date": "2025-10-20",
+      "winners": {
+        "first": "Mechanical Department",
+        "second": "Computer Science Department",
+        "third": "Electronics Department"
+      },
+      "participants": 280,
+      "summary": "Exciting day filled with athletic competitions and team spirit"
+    },
+    {
+      "id": 103,
+      "name": "Cultural Night",
+      "category": "Cultural",
+      "date": "2025-10-08",
+      "winners": {
+        "first": "John Doe - Classical Dance",
+        "second": "Jane Smith - Vocal Solo",
+        "third": "Drama Team - One Act Play"
+      },
+      "participants": 156,
+      "summary": "Spectacular performances showcasing diverse cultural talents"
+    },
+    {
+      "id": 104,
+      "name": "Case Study Competition",
+      "category": "Academic",
+      "date": "2025-09-28",
+      "winners": {
+        "first": "Team Innovators - Business Strategy Case",
+        "second": "Team Leaders - Marketing Case",
+        "third": "Team Visionaries - Finance Case"
+      },
+      "participants": 32,
+      "summary": "Intense competition with real-world business case analyses"
+    },
+    {
+      "id": 105,
+      "name": "Photography Contest",
+      "category": "Cultural",
+      "date": "2025-09-15",
+      "winners": {
+        "first": "Sarah Johnson - Nature Category",
+        "second": "Mike Brown - Portrait Category",
+        "third": "Emily Davis - Abstract Category"
+      },
+      "participants": 67,
+      "summary": "Stunning visual storytelling through the lens of talented photographers"
+    }
+  ]
+}

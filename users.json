@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@college.edu",
+      "password": "admin123",
+      "type": "admin",
+      "name": "Admin User",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "email": "student@college.edu",
+      "password": "student123",
+      "type": "student",
+      "name": "John Student",
+      "rollNumber": "CS2021001",
+      "department": "Computer Science",
+      "year": "3rd",
+      "createdAt": "2025-02-01T00:00:00.000Z"
+    }
+  ]
+}
