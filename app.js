@@ -1056,11 +1056,21 @@ function downloadCertificateData(base64Data, filename) {
 
 // Modal Functions
 function openModal(modalId) {
-  document.getElementById(modalId).classList.add('active');
+  const modal = document.getElementById(modalId);
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
+  }, 10);
 }
 
 function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove('active');
+  const modal = document.getElementById(modalId);
+  modal.classList.remove('active');
+  document.body.classList.remove('modal-open');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 300);
 }
 
 function openLoginModal() {

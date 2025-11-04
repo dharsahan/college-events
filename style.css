@@ -1225,6 +1225,10 @@ body {
   height: 300px;
 }
 
+.btn:active {
+  transform: scale(0.95);
+}
+
 .btn--primary {
   background: var(--color-primary);
   color: var(--color-btn-primary-text);
@@ -1920,6 +1924,21 @@ body {
   padding: var(--space-16);
   backdrop-filter: blur(4px);
   animation: modalFadeIn var(--duration-normal) var(--ease-standard);
+  opacity: 0;
+  transition: opacity var(--duration-normal) ease-in-out;
+}
+
+.modal.active {
+  opacity: 1;
+}
+
+.card {
+  transition: all var(--duration-normal) ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
 }
 
 @keyframes modalFadeIn {
@@ -2880,8 +2899,16 @@ body {
 }
 
 @media (max-width: 480px) {
+  :root {
+    --font-size-base: 13px;
+    --font-size-xl: 16px;
+    --font-size-2xl: 18px;
+    --font-size-3xl: 20px;
+    --font-size-4xl: 24px;
+  }
+
   body {
-    font-size: 13px;
+    font-size: var(--font-size-base);
   }
 
   .container {
@@ -2898,6 +2925,20 @@ body {
 
   .hero-subtitle {
     font-size: var(--font-size-sm);
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
   }
 
   .stats-grid {
@@ -3245,4 +3286,13 @@ html {
   50% {
     box-shadow: 0 0 0 6px rgba(var(--color-teal-500-rgb), 0);
   }
+}
+
+#hero-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
