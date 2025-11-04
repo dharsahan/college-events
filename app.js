@@ -300,6 +300,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   } else {
     renderUpcomingEventsPreview();
   }
+
+  // Initialize theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-color-scheme', savedTheme);
+  updateThemeIcon(savedTheme);
 });
 
 // Event Listeners Setup
@@ -388,6 +393,9 @@ function setupEventListeners() {
   document.getElementById('createEventBtn').addEventListener('click', () => {
     openModal('createEventModal');
   });
+
+  // Theme Toggler
+  document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
 }
 
 // Navigation
@@ -1048,11 +1056,21 @@ function downloadCertificateData(base64Data, filename) {
 
 // Modal Functions
 function openModal(modalId) {
-  document.getElementById(modalId).classList.add('active');
+  const modal = document.getElementById(modalId);
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
+  }, 10);
 }
 
 function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove('active');
+  const modal = document.getElementById(modalId);
+  modal.classList.remove('active');
+  document.body.classList.remove('modal-open');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 300);
 }
 
 function openLoginModal() {
@@ -2651,4 +2669,25 @@ function showToast(message, type = 'success') {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
+}
+
+// Theme Management
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDarkMode = html.getAttribute('data-color-scheme') === 'dark';
+  const newTheme = isDarkMode ? 'light' : 'dark';
+  html.setAttribute('data-color-scheme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+  const themeIcon = document.querySelector('#themeToggleBtn i');
+  if (theme === 'dark') {
+    themeIcon.classList.remove('fa-sun');
+    themeIcon.classList.add('fa-moon');
+  } else {
+    themeIcon.classList.remove('fa-moon');
+    themeIcon.classList.add('fa-sun');
+  }
 }

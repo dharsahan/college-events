@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -73,6 +74,9 @@
                 <a href="#" class="nav-link" data-page="events">Events</a>
                 <a href="#" class="nav-link" data-page="schedule">Schedule</a>
                 <a href="#" class="nav-link" data-page="results">Results</a>
+                <button class="btn btn--secondary btn--sm" id="themeToggleBtn">
+                    <i class="fas fa-sun"></i>
+                </button>
                 <button class="btn btn--primary btn--sm" id="loginBtn">Login</button>
                 <div class="user-menu" id="userMenu" style="display: none;">
                     <button class="btn btn--secondary btn--sm" id="dashboardBtn">Dashboard</button>
@@ -87,6 +91,7 @@
         <div class="page active" id="homePage">
             <!-- Hero Section -->
             <section class="hero">
+                <canvas id="hero-canvas"></canvas>
                 <div class="hero-content">
                     <h1 class="hero-title">Welcome to Campus Events</h1>
                     <p class="hero-subtitle">Your one-stop platform for college event registration, scheduling, and results</p>
@@ -785,5 +790,6 @@
 
     <script src="firebase-config.js"></script>
     <script src="app.js"></script>
+    <script src="animation.js"></script>
 </body>
 </html>
