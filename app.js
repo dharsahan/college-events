@@ -572,28 +572,6 @@ function createEventCard(event) {
   `;
 }
 
-function getCategoryIcon(category) {
-  const icons = {
-    'Cultural': 'fas fa-music',
-    'Technical': 'fas fa-laptop-code',
-    'Sports': 'fas fa-running',
-    'Academic': 'fas fa-book'
-  };
-  return icons[category] || 'fas fa-calendar';
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatTime(timeString) {
-  const [hours, minutes] = timeString.split(':');
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour % 12 || 12;
-  return `${displayHour}:${minutes} ${ampm}`;
-}
 
 // Event Details
 function showEventDetails(eventId) {
@@ -813,15 +791,6 @@ function renderCalendar() {
   });
 }
 
-function getCategoryColor(category) {
-  const colors = {
-    'Technical': '#3B82F6',
-    'Cultural': '#14B8A6',
-    'Sports': '#F97316',
-    'Academic': '#10B981'
-  };
-  return colors[category] || '#3B82F6';
-}
 
 function changeMonth(direction) {
   appState.currentMonth += direction;
